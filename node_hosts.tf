@@ -10,7 +10,7 @@ data "template_file" "node_config" {
 
 resource "openstack_compute_instance_v2" "node" {
   name        = "${format("node%02d", count.index + 1)}.${var.domain_name}"
-  image_id  = "${data.openstack_images_image_v2.centos.id}"
+  image_id  = "${openstack_images_image_v2.atomic.id}"
   flavor_name = "${var.node_type}"
   key_pair    = "${openstack_compute_keypair_v2.ssh-keypair.name}"
   user_data = "${element(data.template_file.node_config.*.rendered, count.index)}"
@@ -21,12 +21,20 @@ resource "openstack_compute_instance_v2" "node" {
 
   security_groups = [
 	"${var.local_ssh_sec_group}",
+	"${var.local_consul_sec_group}",
 	"${openstack_networking_secgroup_v2.openshift.name}"
   ]
 
   connection {
     user = "centos"
     private_key = "${file(var.private_key_file)}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo rpm-ostree install unzip",
+      "sudo systemctl reboot"
+    ]
   }
 
   provisioner "file" {

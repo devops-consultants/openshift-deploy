@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
 
-yum -y install curl unzip
 curl -o /tmp/consul.zip ${consul_download_url}
 cd /usr/local/bin && unzip /tmp/consul.zip
 
@@ -11,20 +10,23 @@ mkdir -p /etc/consul.d/client
 mkdir -p /var/consul
 chown consul.consul /var/consul
 
+LOCAL_IP=$(ifconfig eth0 | grep "inet " | awk '{print $2}')
+
 cat > /etc/consul.d/client/config.json <<-EOF
 {
     "bootstrap": false,
     "server": false,
+    "bind_addr": "$${LOCAL_IP}",
     "datacenter": "${datacenter}",
     "data_dir": "/var/consul",
     "encrypt": "${encrypt_key}",
     "log_level": "INFO",
     "enable_syslog": true,
-    "start_join": ["${join_server_ip"]
+    "start_join": ["${join_server_ip}"]
 }
 EOF
 
-cat > cat /etc/systemd/system/consul.service <<-EOF
+cat > /etc/systemd/system/consul.service <<-EOF
 [Unit]
 Description=consul
 

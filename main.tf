@@ -18,19 +18,13 @@ resource "openstack_compute_keypair_v2" "ssh-keypair" {
   public_key = "${file(var.public_key_file)}"
 }
 
-data "openstack_images_image_v2" "centos" {
-  name = "${var.IMAGE_NAME}"
-  most_recent = true
-}
-
 data "template_file" "setup_consul" {
   template = "${file("files/setup_consul.sh")}"
 
   vars {
-    join_server_ip = "${var.consul_join_ip}"
-    datacenter = "${var.consul_datacenter}"
-    encrypt_key = "${var.consul_encrypt_key}"
+    join_server_ip      = "${var.consul_join_ip}"
+    datacenter          = "${var.consul_datacenter}"
+    encrypt_key         = "${var.consul_encrypt_key}"
     consul_download_url = "${var.consul_download_url}"
   }
-
 }

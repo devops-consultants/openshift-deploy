@@ -14,6 +14,7 @@ variable "openshift_masters" { default = "1" }
 variable "openshift_nodes" { default = "2" }
 
 variable "local_ssh_sec_group" {}
+variable "local_consul_sec_group" {}
 variable "network_name" { default = "OpenShift" }
 variable "domain_name" { default = "example.com" }
 
