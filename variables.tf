@@ -7,7 +7,7 @@ variable "public_key_file" { default = "~/.ssh/id_rsa.pub" }
 variable "private_key_file" { default = "~/.ssh/id_rsa" }
 
 variable "IMAGE_NAME" { default = "CentOS 7" }
-variable "master_type" { default = "m1.medium" }
+variable "master_type" { default = "m1.large" }
 variable "node_type" { default = "m1.large" }
 
 variable "openshift_masters" { default = "1" }

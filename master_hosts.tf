@@ -5,31 +5,36 @@ data "template_file" "master_config" {
   vars {
     hostname = "${format("master%02d", count.index + 1)}"
     fqdn     = "${format("master%02d", count.index + 1)}.${var.domain_name}"
+    root_size = "40G"
   }
 }
 
 resource "openstack_blockstorage_volume_v2" "master" {
   region      = "RegionOne"
   name        = "${format("master%02d", count.index + 1)}"
-  image_id    = "${openstack_images_image_v2.atomic.id}"
+  image_id    = "${data.openstack_images_image_v2.atomic.id}"
   description = "OpenShift Master volume"
-  size        = 20
-  count       = "${var.openshift_masters}"
-}
-
-resource "openstack_blockstorage_volume_v2" "master_data" {
-  region      = "RegionOne"
-  name        = "${format("master%02d_data", count.index + 1)}"
-  description = "OpenShift Master data"
   size        = 50
   count       = "${var.openshift_masters}"
+  timeouts {
+    create = "60m"
+    delete = "2h"
+  }
 }
 
-resource "openstack_compute_volume_attach_v2" "master_data" {
-  instance_id = "${element(openstack_compute_instance_v2.master.*.id, count.index)}"
-  volume_id = "${element(openstack_blockstorage_volume_v2.master_data.*.id, count.index)}"
-  count       = "${var.openshift_masters}"
-}
+#resource "openstack_blockstorage_volume_v2" "master_data" {
+#  region      = "RegionOne"
+#  name        = "${format("master%02d_data", count.index + 1)}"
+#  description = "OpenShift Master data"
+#  size        = 50
+#  count       = "${var.openshift_masters}"
+#}
+
+#resource "openstack_compute_volume_attach_v2" "master_data" {
+#  instance_id = "${element(openstack_compute_instance_v2.master.*.id, count.index)}"
+#  volume_id = "${element(openstack_blockstorage_volume_v2.master_data.*.id, count.index)}"
+#  count       = "${var.openshift_masters}"
+#}
 
 resource "openstack_compute_instance_v2" "master" {
   name        = "${format("master%02d", count.index + 1)}.${var.domain_name}"
@@ -73,10 +78,10 @@ resource "openstack_compute_instance_v2" "master" {
     destination = "/tmp/install_consul.sh"
   }
 
-  provisioner "file" {
-    source      = "files/attach_data_vol.sh"
-    destination = "/tmp/attach_data_vol.sh"
-  }
+#  provisioner "file" {
+#    source      = "files/attach_data_vol.sh"
+#    destination = "/tmp/attach_data_vol.sh"
+#  }
 
   provisioner "remote-exec" {
     inline = [
@@ -86,24 +91,24 @@ resource "openstack_compute_instance_v2" "master" {
   }
 }
 
-resource "null_resource" "master" {
-  triggers {
-    instance_id = "${element(openstack_compute_instance_v2.master.*.id, count.index)}"
-    vol_attachment = "${element(openstack_compute_volume_attach_v2.master_data.*.id, count.index)}"
-  }
-  count = "${var.openshift_masters}"
-
-  connection {
-    host = "${element(openstack_compute_instance_v2.master.*.access_ip_v4, count.index)}"
-    user = "centos"
-    private_key = "${file(var.private_key_file)}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-	"sudo lsblk",
-	"sudo chmod a+x /tmp/attach_data_vol.sh",
-	"sudo /tmp/attach_data_vol.sh"
-    ]
-  }
-}
+#resource "null_resource" "master" {
+#  triggers {
+#    instance_id = "${element(openstack_compute_instance_v2.master.*.id, count.index)}"
+#    vol_attachment = "${element(openstack_compute_volume_attach_v2.master_data.*.id, count.index)}"
+#  }
+#  count = "${var.openshift_masters}"
+#
+#  connection {
+#    host = "${element(openstack_compute_instance_v2.master.*.access_ip_v4, count.index)}"
+#    user = "centos"
+#    private_key = "${file(var.private_key_file)}"
+#  }
+#
+#  provisioner "remote-exec" {
+#    inline = [
+#	"sudo lsblk",
+#	"sudo chmod a+x /tmp/attach_data_vol.sh",
+#	"sudo /tmp/attach_data_vol.sh"
+#    ]
+#  }
+#}

@@ -2,7 +2,7 @@
 #
 
 curl -o /tmp/consul.zip ${consul_download_url}
-cd /usr/local/bin && unzip /tmp/consul.zip
+cd /usr/local/bin && unzip -uo /tmp/consul.zip
 
 getent passwd consul || useradd --system -c 'Consul User' --shell /sbin/nologin --no-create-home --user-group consul
 

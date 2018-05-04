@@ -28,3 +28,8 @@ data "template_file" "setup_consul" {
     consul_download_url = "${var.consul_download_url}"
   }
 }
+
+data "openstack_images_image_v2" "atomic" {
+  name = "CentOS Atomic Host 7"
+  most_recent = true
+}
